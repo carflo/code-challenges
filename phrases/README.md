@@ -14,6 +14,7 @@ Simple example:
 * Run with stdin: `cat myreallylongfile.txt | ./main`
 * Run with args: `./main myreallylongfile.txt`
 
+* Get cpu profile: `make profile`
 
 # Testing
 Test files are provided for convinience:
