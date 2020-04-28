@@ -33,7 +33,7 @@ func Example_printResults() {
 }
 
 func TestPhrases(t *testing.T) {
-	file := "./oos.txt"
+	file := "./moby-dick.txt"
 
 	content, _ := ioutil.ReadFile(file)
 
@@ -53,13 +53,22 @@ func TestPhrases(t *testing.T) {
 	}
 	wg.Wait()
 
+	// Tabulate results at the end.
+	finalCount := make(map[string]int)
+	for _, counter := range results {
+		for phrase := range counter {
+			finalCount[phrase] = finalCount[phrase] + counter[phrase]
+		}
+	}
+
 	tests := []struct {
-		testFunc func([]map[string]int) string
+		testFunc func(map[string]int) string
 		testName string
 	}{
 		{testName: "NoSpecialCharactersInPhrase", testFunc: NoSpecialCharactersInPhrase},
 		{testName: "NoExtraSpaceInPhrase", testFunc: NoExtraSpaceInPhrase},
 		{testName: "PhraseHasThreeWords", testFunc: PhraseHasThreeWords},
+		{testName: "PhraseShouldNotStartWithSpace", testFunc: PhraseShouldNotStartWithSpace},
 	}
 
 	for _, test := range tests {
@@ -68,54 +77,57 @@ func TestPhrases(t *testing.T) {
 			wg.Add(1)
 			go func() {
 				defer wg.Done()
-				invalidPhrase := test.testFunc(results)
+				invalidPhrase := test.testFunc(finalCount)
 				if invalidPhrase != "" {
-					t.Errorf(test.testName + "failed with" + invalidPhrase)
+					t.Errorf("%v failed:%v", test.testName, invalidPhrase)
 				}
 			}()
 			wg.Wait()
 		})
 	}
-
 }
 
-func NoSpecialCharactersInPhrase(results []map[string]int) string {
-	for _, phrases := range results {
-		for phrase := range phrases {
-			for _, char := range phrase {
-				if !unicode.IsLetter(char) {
-					return phrase
-				}
-			}
-		}
-	}
-
-	return ""
-}
-
-func NoExtraSpaceInPhrase(results []map[string]int) string {
-	var lastChar rune
-	for _, phrases := range results {
-		for phrase := range phrases {
-			for _, char := range phrase {
-				if lastChar == ' ' && char == ' ' {
-					return phrase
-				}
-				lastChar = char
-			}
-		}
-	}
-
-	return ""
-}
-
-func PhraseHasThreeWords(results []map[string]int) string {
-	for _, phrases := range results {
-		for phrase := range phrases {
-			words := strings.Split(phrase, " ")
-			if len(words) != 3 {
+func NoSpecialCharactersInPhrase(results map[string]int) string {
+	for phrase := range results {
+		for _, char := range phrase {
+			if !unicode.IsLetter(char) && char != ' ' {
 				return phrase
 			}
+		}
+	}
+
+	return ""
+}
+
+func NoExtraSpaceInPhrase(results map[string]int) string {
+	var lastChar rune
+	for phrase := range results {
+		for _, char := range phrase {
+			if lastChar == ' ' && char == ' ' {
+				return phrase
+			}
+			lastChar = char
+		}
+	}
+
+	return ""
+}
+
+func PhraseHasThreeWords(results map[string]int) string {
+	for phrase := range results {
+		words := strings.Split(strings.TrimSpace(phrase), " ")
+		if len(words) != 3 {
+			return phrase
+		}
+	}
+
+	return ""
+}
+
+func PhraseShouldNotStartWithSpace(results map[string]int) string {
+	for phrase := range results {
+		if phrase[0] == ' ' {
+			return phrase
 		}
 	}
 

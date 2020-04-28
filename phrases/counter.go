@@ -42,11 +42,11 @@ func (p *phraseCounter) sanitize() string {
 	extraSpaceStrippedRegex := regexp.MustCompile(`\s+`)    // Remove extra spaces
 
 	lowercase := strings.ToLower(string(p.originalText))
-	blankLinesStripped := doubleNewLineRegex.ReplaceAllString(lowercase, " ")
+	nonAlphabetic := nonAlphabeticRegex.ReplaceAllString(lowercase, "")
+
+	blankLinesStripped := doubleNewLineRegex.ReplaceAllString(nonAlphabetic, " ")
 	newLineStripped := newLineRegex.ReplaceAllString(blankLinesStripped, " ")
-	dashesStripped := strings.ReplaceAll(newLineStripped, "--", " ")
-	extraSpaceStripped := strings.TrimSpace(extraSpaceStrippedRegex.ReplaceAllString(dashesStripped, " "))
-	sanitized := nonAlphabeticRegex.ReplaceAllString(extraSpaceStripped, "")
+	sanitized := strings.TrimSpace(extraSpaceStrippedRegex.ReplaceAllString(newLineStripped, " "))
 
 	return sanitized
 }
