@@ -11,12 +11,8 @@ func TestSanitize(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	p := &phraseCounter{
-		originalText: text,
-	}
 
 	expected := "i love sandwiches"
-	result := p.sanitize()
 	if result != "i love sandwiches" {
 		t.Errorf("got: %v, want: %v", result, expected)
 	}
