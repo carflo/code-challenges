@@ -5,6 +5,13 @@ import (
 	"strings"
 )
 
+var (
+	nonAlphabeticRegex      = regexp.MustCompile("[^a-zA-Z ]+") // Remove non alphabetic chars
+	newLineRegex            = regexp.MustCompile(`\r?\n`)       // Remove CR and LF
+	doubleNewLineRegex      = regexp.MustCompile(`\r?\n\r?\n`)  // Remove LineBreaks
+	extraSpaceStrippedRegex = regexp.MustCompile(`\s+`)         // Remove extra spaces
+)
+
 // phraseCounter is one of the counters
 // that will tally up phrase frequency
 type phraseCounter struct {
@@ -36,14 +43,8 @@ func (p *phraseCounter) parse(sanitized string) <-chan string {
 }
 
 func (p *phraseCounter) sanitize() string {
-	nonAlphabeticRegex := regexp.MustCompile("[^a-zA-Z ]+") // Remove non alphabetic chars
-	newLineRegex := regexp.MustCompile(`\r?\n`)             // Remove CR and LF
-	doubleNewLineRegex := regexp.MustCompile(`\r?\n\r?\n`)  // Remove LineBreaks
-	extraSpaceStrippedRegex := regexp.MustCompile(`\s+`)    // Remove extra spaces
-
 	lowercase := strings.ToLower(string(p.originalText))
 	nonAlphabetic := nonAlphabeticRegex.ReplaceAllString(lowercase, "")
-
 	blankLinesStripped := doubleNewLineRegex.ReplaceAllString(nonAlphabetic, " ")
 	newLineStripped := newLineRegex.ReplaceAllString(blankLinesStripped, " ")
 	sanitized := strings.TrimSpace(extraSpaceStrippedRegex.ReplaceAllString(newLineStripped, " "))
